@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prague FX</title>
+    <!-- Tailwind CSS for quick, clean styling -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Manifest to allow "Add to Home Screen" PWA behavior -->
+    <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22Prague%20FX%22,%22short_name%22:%22PragueFX%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%23111827%22,%22theme_color%22:%22%231f2937%22}">
+    <meta name="theme-color" content="#1f2937">
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex items-center justify-center p-4 font-sans">
+
+    <div class="w-full max-w-md bg-gray-800 p-6 rounded-2xl shadow-xl border border-gray-700">
+        <h1 class="text-2xl font-bold text-center mb-6 text-amber-400">EUR ⇄ CZK Converter</h1>
+        
+        <!-- EUR to CZK Section -->
+        <div class="mb-5">
+            <label class="block text-sm font-medium text-gray-400 mb-1">Euros (€)</label>
+            <div class="relative">
+                <input type="number" id="eurInput" placeholder="0.00" class="w-full bg-gray-700 text-white rounded-xl py-3 px-4 text-xl focus:outline-none focus:ring-2 focus:ring-amber-400 border border-gray-600">
+                <span class="absolute right-4 top-3.5 text-gray-400 text-lg">EUR</span>
+            </div>
+        </div>
+
+        <!-- Swap Icon Visual Divider -->
+        <div class="flex justify-center my-2 text-gray-500">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+            </svg>
+        </div>
+
+        <!-- CZK to EUR Section -->
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-400 mb-1">Czech Koruna (Kč)</label>
+            <div class="relative">
+                <input type="number" id="czkInput" placeholder="0.00" class="w-full bg-gray-700 text-white rounded-xl py-3 px-4 text-xl focus:outline-none focus:ring-2 focus:ring-amber-400 border border-gray-600">
+                <span class="absolute right-4 top-3.5 text-gray-400 text-lg">CZK</span>
+            </div>
+        </div>
+
+        <!-- Quick Info Footer -->
+        <div class="text-center text-xs text-gray-500 border-t border-gray-700 pt-4">
+            <p id="rateDisplay">Loading latest rates...</p>
+        </div>
+    </div>
+
+    <script>
+        // Using a free, no-auth API for instant rates
+        const API_URL = "https://open.er-api.com/v6/latest/EUR";
+        let eurToCzkRate = 25.0; // Fallback hardcoded rate if offline
+
+        const eurInput = document.getElementById('eurInput');
+        const czkInput = document.getElementById('czkInput');
+        const rateDisplay = document.getElementById('rateDisplay');
+
+        // Fetch the live exchange rate immediately
+        async function fetchRates() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                if (data && data.rates && data.rates.CZK) {
+                    eurToCzkRate = data.rates.CZK;
+                    rateDisplay.innerText = `1 EUR = ${eurToCzkRate.toFixed(2)} CZK (Live updated)`;
+                }
+            } catch (error) {
+                rateDisplay.innerText = `1 EUR = ${eurToCzkRate.toFixed(2)} CZK (Using cached/fallback rate)`;
+                console.error("Error fetching rates, using fallback:", error);
+            }
+        }
+
+        // Real-time bi-directional conversion logic
+        eurInput.addEventListener('input', () => {
+            if (eurInput.value === '') {
+                czkInput.value = '';
+                return;
+            }
+            const converted = parseFloat(eurInput.value) * eurToCzkRate;
+            czkInput.value = converted.toFixed(2);
+        });
+
+        czkInput.addEventListener('input', () => {
+            if (czkInput.value === '') {
+                eurInput.value = '';
+                return;
+            }
+            const converted = parseFloat(czkInput.value) / eurToCzkRate;
+            eurInput.value = converted.toFixed(2);
+        });
+
+        // Initialize
+        fetchRates();
+    </script>
+</body>
+</html>
